@@ -152,13 +152,58 @@ export const SessionsPage: React.FC = () => {
   const addSession = async () => {
     if (!newSession.name.trim()) return
 
+    // Create default checklist for lecture sessions
+    let defaultChecklist: ChecklistItem[] = []
+    
+    if (newSession.name.toUpperCase().includes('LECTURE')) {
+      const lectureItems = [
+        // MENTOR REQUIREMENTS
+        { text: 'MENTOR REQUIREMENT:', color: 'red' as const },
+        { text: 'REQUIREMENTS FOR THE SESSION', color: 'blue' as const },
+        { text: 'PREPARED FOR THE SESSION - Internalizing the content throughout', color: 'green' as const },
+        { text: 'Materials - Laptop, Presentation clicker, Mic (if needed), Activity Items (If needed), IPad for uploading images', color: 'blue' as const },
+        { text: 'Questions prepared', color: 'green' as const },
+        { text: 'Activities planned', color: 'green' as const },
+        { text: 'VERBAL AND NON VERBAL INTERACTION', color: 'purple' as const },
+        { text: 'Clarity in speech', color: 'green' as const },
+        { text: 'Sticking to purpose', color: 'green' as const },
+        { text: 'Posture', color: 'green' as const },
+        { text: 'Tone', color: 'green' as const },
+        { text: 'Student Engagement', color: 'green' as const },
+        { text: 'Energy', color: 'green' as const },
+        { text: 'CREATIVITY OF PRESENTATION', color: 'yellow' as const },
+        { text: 'Analogies', color: 'green' as const },
+        { text: 'Stories', color: 'green' as const },
+        { text: 'Real world applications', color: 'green' as const },
+        { text: 'Visuals in the background', color: 'green' as const },
+        { text: 'INSTRUCTIONAL EFFECTIVENESS', color: 'indigo' as const },
+        { text: 'Is the delivery responsive to the students level of grasp? (We can only get it from the student.)', color: 'green' as const },
+        { text: 'FILLING IN THE FEEDBACK', color: 'green' as const },
+        { text: '', color: 'gray' as const }, // Spacer
+        // CANDIDATE REQUIREMENTS
+        { text: 'CANDIDATE REQUIREMENT:', color: 'red' as const },
+        { text: 'ON TIME TO CLASS', color: 'green' as const },
+        { text: 'BACK STRAIGHT', color: 'green' as const },
+        { text: 'ASSIGNMENTS SUBMITTED', color: 'green' as const },
+        { text: 'WATER BOTTLES AND NOTEBOOK BROUGHT TO CLASS', color: 'green' as const }
+      ]
+      
+      defaultChecklist = lectureItems.map((item, index) => ({
+        id: `lecture-item-${Date.now()}-${index}`,
+        text: item.text,
+        completed: false,
+        color: item.color,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }))
+    }
     try {
       const { error } = await supabase
         .from('sessions')
         .insert([{
           name: newSession.name,
           description: newSession.description,
-          checklist: []
+          checklist: defaultChecklist
         }])
 
       if (error) throw error
