@@ -67,3 +67,6 @@ export const dmrpSessions = [
     ]
   }
 ]
+
+// Special sessions export to satisfy import requirements
+export const specialSessions = []
