@@ -89,16 +89,98 @@ export const SessionsPage: React.FC = () => {
     const session = sessions.find(s => s.id === sessionId)
     if (!session) return
 
-    const updatedChecklist = session.checklist.map(item => {
-      if (item.id === itemId) {
-        return {
-          ...item,
-          completed: !item.completed,
+    const clickedItem = session.checklist.find(item => item.id === itemId)
+    if (!clickedItem) return
+
+    let updatedChecklist = [...session.checklist]
+    
+    // Check if this is a main point (capitalized and colored red, purple, yellow, indigo, or blue)
+    const isMainPoint = clickedItem.text === clickedItem.text.toUpperCase() && 
+                       ['red', 'purple', 'yellow', 'indigo', 'blue'].includes(clickedItem.color)
+    
+    if (isMainPoint) {
+      // Find the index of the clicked main point
+      const mainPointIndex = updatedChecklist.findIndex(item => item.id === itemId)
+      
+      // Find all sub-points (green items) that come after this main point and before the next main point
+      const subPoints = []
+      for (let i = mainPointIndex + 1; i < updatedChecklist.length; i++) {
+        const item = updatedChecklist[i]
+        // Stop if we hit another main point
+        if (item.text === item.text.toUpperCase() && ['red', 'purple', 'yellow', 'indigo', 'blue'].includes(item.color)) {
+          break
+        }
+        // Add green sub-points
+        if (item.color === 'green') {
+          subPoints.push(i)
+        }
+      }
+      
+      // Toggle the main point and all its sub-points
+      const newCompletedState = !clickedItem.completed
+      updatedChecklist = updatedChecklist.map((item, index) => {
+        if (item.id === itemId || subPoints.includes(index)) {
+          return {
+            ...item,
+            completed: newCompletedState,
+            updated_at: new Date().toISOString()
+          }
+        }
+        return item
+      })
+    } else {
+      // For sub-points, just toggle the individual item
+      updatedChecklist = updatedChecklist.map(item => {
+        if (item.id === itemId) {
+          return {
+            ...item,
+            completed: !item.completed,
+            updated_at: new Date().toISOString()
+          }
+        }
+        return item
+      })
+      
+      // Check if we need to update the parent main point
+      // Find which main point this sub-point belongs to
+      const subPointIndex = updatedChecklist.findIndex(item => item.id === itemId)
+      let parentMainPointIndex = -1
+      
+      // Look backwards to find the parent main point
+      for (let i = subPointIndex - 1; i >= 0; i--) {
+        const item = updatedChecklist[i]
+        if (item.text === item.text.toUpperCase() && ['red', 'purple', 'yellow', 'indigo', 'blue'].includes(item.color)) {
+          parentMainPointIndex = i
+          break
+        }
+      }
+      
+      if (parentMainPointIndex !== -1) {
+        // Find all sub-points for this main point
+        const allSubPoints = []
+        for (let i = parentMainPointIndex + 1; i < updatedChecklist.length; i++) {
+          const item = updatedChecklist[i]
+          // Stop if we hit another main point
+          if (item.text === item.text.toUpperCase() && ['red', 'purple', 'yellow', 'indigo', 'blue'].includes(item.color)) {
+            break
+          }
+          // Add green sub-points
+          if (item.color === 'green') {
+            allSubPoints.push(i)
+          }
+        }
+        
+        // Check if all sub-points are completed
+        const allSubPointsCompleted = allSubPoints.every(index => updatedChecklist[index].completed)
+        
+        // Update the main point's completion status
+        updatedChecklist[parentMainPointIndex] = {
+          ...updatedChecklist[parentMainPointIndex],
+          completed: allSubPointsCompleted,
           updated_at: new Date().toISOString()
         }
       }
-      return item
-    })
+    }
 
     updateSession(sessionId, { checklist: updatedChecklist })
   }
