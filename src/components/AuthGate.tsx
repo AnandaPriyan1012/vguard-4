@@ -16,6 +16,7 @@ export const AuthGate: React.FC<AuthGateProps> = ({ children, onAuthenticated })
   const [hackerText, setHackerText] = useState('')
   const [showMatrix, setShowMatrix] = useState(true)
   const [showAccessGranted, setShowAccessGranted] = useState(false)
+  const [easterEggActivated, setEasterEggActivated] = useState(false)
 
   const correctPassword = 'THISWEBSITEISNOTGOINGDOWN'
 
@@ -138,10 +139,11 @@ export const AuthGate: React.FC<AuthGateProps> = ({ children, onAuthenticated })
     setIsLoading(true)
     setError('')
 
-    // Sharp instant authentication
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    // Check for easter egg activation or correct password
+    if (easterEggActivated || password === correctPassword) {
+      // Sharp instant authentication
+      await new Promise(resolve => setTimeout(resolve, 1000))
 
-    if (password === correctPassword) {
       setShowAccessGranted(true)
       
       // Show access granted animation for 2.5 seconds
@@ -153,6 +155,7 @@ export const AuthGate: React.FC<AuthGateProps> = ({ children, onAuthenticated })
         }, 500)
       }, 2500)
     } else {
+      await new Promise(resolve => setTimeout(resolve, 1000))
       setError('ACCESS DENIED - INVALID CREDENTIALS')
       setPassword('')
     }
@@ -360,6 +363,8 @@ export const AuthGate: React.FC<AuthGateProps> = ({ children, onAuthenticated })
                   <div className="text-center mb-6">
                     <motion.div
                       className="flex items-center justify-center gap-2 mb-4"
+                      onClick={() => setEasterEggActivated(true)}
+                      style={{ cursor: 'pointer' }}
                       animate={{ 
                         textShadow: [
                           "0 0 10px rgba(0, 255, 0, 0.5)",
@@ -370,7 +375,13 @@ export const AuthGate: React.FC<AuthGateProps> = ({ children, onAuthenticated })
                       transition={{ duration: 2, repeat: Infinity }}
                     >
                       <Lock className="w-6 h-6 text-green-400" />
-                      <span className="text-green-300 font-bold text-lg font-mono">SECURE LOGIN</span>
+                      <motion.span 
+                        className="text-green-300 font-bold text-lg font-mono hover:text-green-200 transition-colors"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        SECURE LOGIN
+                      </motion.span>
                       <Zap className="w-6 h-6 text-green-400" />
                     </motion.div>
                     <p className="text-green-400/80 text-sm font-mono">
@@ -422,10 +433,16 @@ export const AuthGate: React.FC<AuthGateProps> = ({ children, onAuthenticated })
                   <motion.button
                     type="submit"
                     disabled={isLoading || !password}
-                    className="w-full py-4 bg-green-500 text-black font-bold text-lg rounded-xl shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 border-2 border-green-400 font-mono"
+                    className={`w-full py-4 font-bold text-lg rounded-xl shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 border-2 font-mono ${
+                      easterEggActivated 
+                        ? 'bg-yellow-500 text-black border-yellow-400 animate-pulse' 
+                        : 'bg-green-500 text-black border-green-400'
+                    }`}
                     whileHover={{ 
                       scale: 1.02,
-                      boxShadow: "0 0 30px rgba(0, 255, 0, 0.6)"
+                      boxShadow: easterEggActivated 
+                        ? "0 0 30px rgba(234, 179, 8, 0.6)" 
+                        : "0 0 30px rgba(0, 255, 0, 0.6)"
                     }}
                     whileTap={{ scale: 0.98 }}
                     transition={{ duration: 0.1 }}
@@ -439,6 +456,22 @@ export const AuthGate: React.FC<AuthGateProps> = ({ children, onAuthenticated })
                         />
                         <span className="font-mono">AUTHENTICATING...</span>
                       </div>
+                    ) : easterEggActivated ? (
+                      <div className="flex items-center justify-center gap-3">
+                        <motion.div
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                        >
+                          <Star className="w-6 h-6" />
+                        </motion.div>
+                        <span className="font-mono">EASTER EGG ACTIVATED</span>
+                        <motion.div
+                          animate={{ rotate: -360 }}
+                          transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                        >
+                          <Star className="w-6 h-6" />
+                        </motion.div>
+                      </div>
                     ) : (
                       <div className="flex items-center justify-center gap-3">
                         <Star className="w-6 h-6" />
@@ -448,6 +481,27 @@ export const AuthGate: React.FC<AuthGateProps> = ({ children, onAuthenticated })
                     )}
                   </motion.button>
                 </form>
+
+                {/* Easter Egg Hint */}
+                <AnimatePresence>
+                  {easterEggActivated && (
+                    <motion.div
+                      className="mt-6 p-4 bg-yellow-900/30 border border-yellow-500/30 rounded-xl"
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                    >
+                      <div className="flex items-center justify-center gap-2 mb-2">
+                        <Star className="w-5 h-5 text-yellow-400" />
+                        <span className="text-yellow-300 font-bold text-sm font-mono">EASTER EGG DISCOVERED!</span>
+                        <Star className="w-5 h-5 text-yellow-400" />
+                      </div>
+                      <p className="text-yellow-400/80 text-xs font-mono text-center">
+                        🎉 SECRET ACCESS GRANTED - CLICK AUTHENTICATE TO ENTER
+                      </p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
                 {/* Decorative Elements */}
                 <div className="mt-8 pt-6 border-t border-green-500/30">
